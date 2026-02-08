@@ -1,1 +1,0 @@
-# Library module - Shared utilities

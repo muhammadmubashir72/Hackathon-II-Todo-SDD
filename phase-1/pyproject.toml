@@ -1,0 +1,18 @@
+[project]
+name = "todo-cli-phase1"
+version = "1.0.0"
+description = "Phase I - In-Memory Todo Console Application"
+authors = [{name = "Todo CLI Team", email = "todo@example.com"}]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "black>=22.0",
+    "flake8>=4.0",
+]
+
+[project.scripts]
+todo-cli = "src.cli.main:main"
