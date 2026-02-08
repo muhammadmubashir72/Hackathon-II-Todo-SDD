@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 # Import routers
 from src.api.auth_router import auth_router
 from src.api.task_router import task_router
+from src.api.ai_todo_router import ai_todo_router
 from src.database import create_tables
 
 # Load environment variables - try local file first, then default
@@ -37,6 +38,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router)
 app.include_router(task_router)
+app.include_router(ai_todo_router)
 
 # Create tables on startup
 @app.on_event("startup")

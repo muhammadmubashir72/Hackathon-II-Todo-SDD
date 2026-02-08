@@ -23,7 +23,7 @@ class User(SQLModel, table=True):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     is_active: bool = Field(default=True)
 
-    # Relationships to tasks and refresh tokens
+    # Relationships to tasks, refresh tokens, and conversations
     tasks: List["Task"] = Relationship(back_populates="user")
     refresh_tokens: List["RefreshToken"] = Relationship(back_populates="user")
 
