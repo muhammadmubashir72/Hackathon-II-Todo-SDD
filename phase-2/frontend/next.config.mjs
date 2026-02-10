@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Server Actions are enabled by default in Next.js 14.2+
-  // No need to explicitly enable them in experimental
+  // Enable static exports for Vercel deployment
+  output: 'export',
 
   // Add environment variable for the backend API
   env: {
