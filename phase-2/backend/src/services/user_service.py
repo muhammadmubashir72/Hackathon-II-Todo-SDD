@@ -44,8 +44,12 @@ class UserService:
         if not is_unique:
             raise ValueError(error_msg)
 
+        # Ensure password complies with bcrypt's 72-byte limit
+        from ..skills.auth_validation import truncate_password_to_bcrypt_limit
+        truncated_password = truncate_password_to_bcrypt_limit(user_create.password)
+        
         # Hash the password
-        password_hash = get_password_hash(user_create.password)
+        password_hash = get_password_hash(truncated_password)
 
         # Create the user object
         user = User(

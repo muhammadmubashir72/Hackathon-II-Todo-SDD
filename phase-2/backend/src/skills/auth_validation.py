@@ -13,8 +13,8 @@ from jose import JWTError, jwt
 from ..models.user import User
 
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context with fallback schemes
+pwd_context = CryptContext(schemes=["bcrypt", "argon2", "pbkdf2_sha256"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -72,6 +72,7 @@ def validate_email_format(email: str) -> tuple[bool, Optional[str]]:
 def validate_password_strength(password: str) -> tuple[bool, Optional[str]]:
     """
     Validate password strength according to security requirements.
+    Note: Due to bcrypt limitations, passwords must be 72 bytes or less in length.
 
     Args:
         password: Password to validate
@@ -85,8 +86,10 @@ def validate_password_strength(password: str) -> tuple[bool, Optional[str]]:
     if len(password) < 8:
         return False, "Password must be at least 8 characters long"
 
-    if len(password) > 128:  # Reasonable upper limit
-        return False, "Password must be no more than 128 characters long"
+    # Bcrypt has a 72-byte limit on passwords, so enforce this limit
+    # This prevents the "password cannot be longer than 72 bytes" error
+    if len(password.encode('utf-8')) > 72:
+        return False, "password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])"
 
     # Check for at least one lowercase, uppercase, digit, and special character
     has_lower = any(c.islower() for c in password)
@@ -98,6 +101,24 @@ def validate_password_strength(password: str) -> tuple[bool, Optional[str]]:
         return False, "Password must contain at least one lowercase letter, one uppercase letter, and one digit"
 
     return True, None
+
+
+def truncate_password_to_bcrypt_limit(password: str) -> str:
+    """
+    Truncate password to fit within bcrypt's 72-byte limit.
+    
+    Args:
+        password: Original password string
+        
+    Returns:
+        Truncated password that fits within 72 bytes
+    """
+    encoded_password = password.encode('utf-8')
+    if len(encoded_password) > 72:
+        # Truncate to 72 bytes and decode back to string
+        truncated_bytes = encoded_password[:72]
+        return truncated_bytes.decode('utf-8', errors='ignore')
+    return password
 
 
 def validate_user_credentials(
@@ -133,8 +154,11 @@ def validate_user_credentials(
     if not user.is_active:
         return None, "Account is deactivated"
 
+    # Ensure password complies with bcrypt's 72-byte limit for verification
+    truncated_password = truncate_password_to_bcrypt_limit(password)
+    
     # Verify password
-    if not verify_password(password, user.password_hash):
+    if not verify_password(truncated_password, user.password_hash):
         return None, "Invalid credentials"
 
     return user, None
